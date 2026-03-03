@@ -1,4 +1,4 @@
 # Supabase Edge Functions Configuration
 
 [functions.broadcast]
-verify_jwt = true
+verify_jwt = false
