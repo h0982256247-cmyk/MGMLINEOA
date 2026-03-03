@@ -1,8 +1,9 @@
-import { supabase } from "./supabase";
+import { broadcast } from "./edgeFunction";
+import { EdgeFunctionError } from "./edgeFunction";
 
 /**
  * 透過 LINE OA 廣播 Flex Message
- * 使用 PostgreSQL RPC 呼叫 LINE Messaging API（避免 Edge Function JWT 驗證問題）
+ * 使用 Supabase Edge Function 呼叫 LINE Messaging API
  * @param flexMessages Flex Message 內容陣列
  * @param altText 替代文字
  * @returns 廣播結果
@@ -20,54 +21,39 @@ export async function broadcastFlexMessage(
       };
     }
 
-    console.log('[Broadcast] 🚀 開始廣播流程（使用 RPC）');
+    console.log('[Broadcast] 🚀 開始廣播流程（使用 Edge Function）');
     console.log('[Broadcast] 📝 訊息數量:', flexMessages.length);
 
-    // 構建 LINE messages 格式
-    const messages = flexMessages.map((flex) => ({
-      type: "flex",
-      altText,
-      contents: flex,
-    }));
-
-    // 呼叫 PostgreSQL RPC
-    const { data, error } = await supabase.rpc('rm_broadcast_message', {
-      p_flex_messages: messages,
-      p_alt_text: altText
-    });
-
-    if (error) {
-      console.error('[Broadcast] ❌ RPC 調用失敗:', error);
-      throw new Error(error.message || '廣播失敗');
-    }
-
-    // 檢查 RPC 返回的結果
-    if (!data || !data.success) {
-      const errorCode = data?.error?.code || 'UNKNOWN_ERROR';
-      const errorMessage = data?.error?.message || '廣播失敗';
-      console.error('[Broadcast] ❌ 廣播失敗');
-      console.error('[Broadcast] 錯誤代碼:', errorCode);
-      console.error('[Broadcast] 錯誤訊息:', errorMessage);
-
-      // 提供友好的錯誤訊息
-      let friendlyMessage = errorMessage;
-      if (errorCode === 'TOKEN_NOT_FOUND') {
-        friendlyMessage = 'LINE Token 未設定，請先綁定 LINE Channel';
-      } else if (errorCode === 'LINE_API_ERROR') {
-        friendlyMessage = 'LINE API 調用失敗，請檢查 Token 是否有效';
-      }
-
-      return { success: false, error: friendlyMessage };
-    }
+    // 呼叫 Edge Function
+    const result = await broadcast(flexMessages, altText);
 
     console.log('[Broadcast] ✅ 廣播成功！');
-    console.log('[Broadcast] 📊 結果:', data.data);
+    console.log('[Broadcast] 📊 結果:', result);
 
     return { success: true };
 
   } catch (error: unknown) {
     console.error('[Broadcast] ❌ 廣播失敗');
 
+    // 處理 EdgeFunctionError
+    if (error instanceof EdgeFunctionError) {
+      console.error('[Broadcast] 錯誤代碼:', error.code);
+      console.error('[Broadcast] 錯誤訊息:', error.message);
+
+      // 提供友好的錯誤訊息
+      let friendlyMessage = error.message;
+      if (error.code === 'TOKEN_NOT_FOUND') {
+        friendlyMessage = 'LINE Token 未設定，請先綁定 LINE Channel';
+      } else if (error.code === 'LINE_API_ERROR') {
+        friendlyMessage = 'LINE API 調用失敗，請檢查 Token 是否有效';
+      } else if (error.code === 'NO_SESSION') {
+        friendlyMessage = '請先登入才能發送廣播';
+      }
+
+      return { success: false, error: friendlyMessage };
+    }
+
+    // 處理一般錯誤
     const errorMessage = error instanceof Error ? error.message : '未知錯誤';
     console.error('[Broadcast] 錯誤訊息:', errorMessage);
 
