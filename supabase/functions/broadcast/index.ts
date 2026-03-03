@@ -83,17 +83,17 @@ serve(async (req) => {
             });
         }
 
-        // Create Supabase client with user auth
+        // Create Supabase client with anon key
         console.log("[broadcast] 🔍 Creating Supabase client...");
-        const supabaseClient = createClient(
-            supabaseUrl,
-            supabaseAnonKey,
-            { global: { headers: { Authorization: authHeader } } }
-        );
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
 
-        // Verify user
-        console.log("[broadcast] 🔍 Calling auth.getUser()...");
-        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        // Extract JWT from Authorization header
+        const jwt = authHeader.replace("Bearer ", "");
+        console.log("[broadcast] 🔍 JWT length:", jwt.length);
+
+        // Verify user with JWT
+        console.log("[broadcast] 🔍 Calling auth.getUser(jwt)...");
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser(jwt);
 
         if (userError || !user) {
             console.error("[broadcast] ❌ User verification failed");
