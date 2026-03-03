@@ -33,7 +33,9 @@ export default function App() {
       <Route path="/drafts/new" element={<ProtectedRoute><NewDraft /></ProtectedRoute>} />
       <Route path="/drafts/:id/edit" element={<ProtectedRoute><EditDraft /></ProtectedRoute>} />
       <Route path="/drafts/:id/preview" element={<ProtectedRoute><PreviewDraft /></ProtectedRoute>} />
-      <Route path="/share" element={<ProtectedRoute><Share /></ProtectedRoute>} />
+
+      {/* 分享頁面 - 公開訪問，不需要登入 */}
+      <Route path="/share" element={<Share />} />
 
       {/* 404 */}
       <Route path="*" element={<Navigate to="/" replace />} />
