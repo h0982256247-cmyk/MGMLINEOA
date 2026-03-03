@@ -36,8 +36,11 @@ export default function PreviewDraft() {
     setBroadcastBusy(true);
 
     try {
-      // Build flex message
-      const flexMessage = buildFlex(doc, id);
+      // Get LIFF ID from environment
+      const liffId = import.meta.env.VITE_LIFF_ID as string | undefined;
+
+      // Build flex message with token and liffId for share buttons
+      const flexMessage = buildFlex(doc, id, active?.token, liffId);
 
       // Broadcast via Edge Function
       const result = await broadcastFlexMessage([flexMessage.contents], doc.altText || flexMessage.altText || "您收到新訊息");
