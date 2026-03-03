@@ -368,6 +368,30 @@ $$;
 
 grant execute on function public.check_line_token() to authenticated;
 
+-- get_channel_status: 前端用來取得 LINE Channel 狀態和資訊
+create or replace function public.get_channel_status()
+returns table(has_channel boolean, name text, updated_at timestamptz)
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  return query
+  select
+    true as has_channel,
+    c.name,
+    c.updated_at
+  from public.rm_line_channels c
+  where c.user_id = auth.uid()
+  limit 1;
+
+  -- 如果沒有找到記錄，返回空結果（has_channel 會是 null）
+  -- 前端會根據返回的結果判斷是否有 channel
+end;
+$$;
+
+grant execute on function public.get_channel_status() to authenticated;
+
 -- rm_validate_line_token: 驗證 LINE Channel Access Token 是否有效
 -- 使用 PostgreSQL http extension 調用 LINE API /v2/bot/info
 create or replace function public.rm_validate_line_token(p_access_token text)
