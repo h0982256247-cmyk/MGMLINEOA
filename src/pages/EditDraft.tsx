@@ -826,12 +826,10 @@ export default function EditDraft() {
                                 const next = [...(section as any).footer];
                                 if (type === "uri") next[idx] = { ...b, action: { type, uri: "" } };
                                 else if (type === "message") next[idx] = { ...b, action: { type, text: "" } };
-                                else if (type === "share") next[idx] = { ...b, action: { type, uri: "" } };
                                 setSection({ ...section, footer: next });
                               }}>
                                 <option value="uri">開啟網址</option>
                                 <option value="message">傳送文字</option>
-                                <option value="share">分享好友</option>
                               </select>
                             </div>
                           </div>
@@ -1176,12 +1174,10 @@ export default function EditDraft() {
                                 const next = [...(section as any).footer];
                                 if (type === "uri") next[idx] = { ...b, action: { type, uri: "" } };
                                 else if (type === "message") next[idx] = { ...b, action: { type, text: "" } };
-                                else if (type === "share") next[idx] = { ...b, action: { type, uri: "" } };
                                 setSection({ ...section, footer: next });
                               }}>
                                 <option value="uri">開啟網址</option>
                                 <option value="message">傳送文字</option>
-                                <option value="share">分享好友</option>
                               </select>
                             </div>
                           </div>

@@ -2,6 +2,18 @@ import React, { useMemo } from "react";
 import { DocModel } from "@/lib/types";
 import { buildFlex } from "@/lib/buildFlex";
 
+// Get bubble width based on size
+function getBubbleWidth(size: string): string {
+  const sizeMap: Record<string, string> = {
+    nano: "200px",
+    micro: "240px",
+    kilo: "280px",  // Default
+    mega: "320px",
+    giga: "360px",
+  };
+  return sizeMap[size] || "280px";
+}
+
 export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }: { doc?: DocModel; flex?: any; selectedIndex?: number; onIndexChange?: (i: number) => void }) {
   const content = useMemo(() => {
     if (flex) return flex;
@@ -62,6 +74,10 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
   }
 
   if (root.type === "carousel") {
+    // Get bubble size from first bubble (all bubbles in carousel have same size)
+    const bubbleSize = root.contents[0]?.size || "kilo";
+    const width = getBubbleWidth(bubbleSize);
+
     return (
       <div
         ref={scrollRef}
@@ -71,9 +87,10 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
         {root.contents.map((bubble: any, i: number) => (
           <div
             key={i}
-            className={`min-w-[280px] max-w-[280px] snap-center flex-shrink-0 cursor-pointer transition-all duration-200 ${
+            className={`snap-center flex-shrink-0 cursor-pointer transition-all duration-200 ${
               selectedIndex === i ? "ring-2 ring-blue-400 ring-offset-2 rounded-[18px]" : "hover:opacity-90"
             }`}
+            style={{ minWidth: width, maxWidth: width }}
             onClick={() => handleCardClick(i)}
           >
             <FlexBubble bubble={bubble} />
@@ -85,7 +102,14 @@ export default function FlexPreview({ doc, flex, selectedIndex, onIndexChange }:
   }
 
   if (root.type === "bubble") {
-    return <FlexBubble bubble={root} />;
+    const width = getBubbleWidth(root.size || "kilo");
+    return (
+      <div className="flex justify-center">
+        <div style={{ width, maxWidth: width }}>
+          <FlexBubble bubble={root} />
+        </div>
+      </div>
+    );
   }
 
   return <div>Unsupported Flex Type</div>;
