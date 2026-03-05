@@ -18,11 +18,8 @@ if (!url || !anon) {
 
 export const supabase = createClient(url, anon, {
   auth: {
-    persistSession: true,         // ✅ 持久化 session
-    autoRefreshToken: true,       // ✅ 自動刷新過期的 token
+    persistSession: false,        // ❌ 不持久化 session - 每次都需要重新登入
+    autoRefreshToken: false,      // ❌ 不自動刷新 token
     detectSessionInUrl: true,     // ✅ 從 URL 檢測 session（magic link 需要）
-    // 🚨 修復：使用預設的 localStorage（而非自定義 sessionStorage）
-    // 原因：自定義 storage 會干擾 SDK 的 header 自動附加機制
-    // localStorage 是 Supabase SDK 的預設和推薦配置
   },
 });
